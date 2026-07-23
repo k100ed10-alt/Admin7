@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الطلاب - رياضيات الصف السابع</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .main-header {
+            color: #3f9b7a;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #e0e0e0;
+            padding-bottom: 10px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .wrap { max-width: 1000px; margin: 0 auto; }
+
+        #login-view { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; }
+        .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 320px; }
+        .login-card input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; outline: none; transition: border 0.3s; font-family: inherit; font-size: 15px; }
+        .login-card input:focus { border-color: #3f9b7a; }
+
+        .btn {
+            background-color: #3f9b7a; color: white; border: none; padding: 12px 22px;
+            font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; font-family: inherit; transition: background 0.3s;
+        }
+        .btn:hover { background-color: #2f7a5f; }
+        .btn-danger { background-color: #d6453b; }
+        .btn-danger:hover { background-color: #b8362d; }
+        .btn-secondary { background-color: #888; }
+        .btn-secondary:hover { background-color: #666; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .error-msg { color: #d6453b; font-size: 14px; margin-top: 10px; min-height: 18px; }
+
+        #panel-view { display: none; }
+        .topbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; max-width:1000px; margin:0 auto 20px; }
+
+        .card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 22px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            border: 1px solid #eee;
+            margin-bottom: 25px;
+        }
+        .card h2 { margin-top:0; color:#3f9b7a; font-size: 19px; }
+
+        .form-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+        .field { flex: 1; min-width: 160px; }
+        .field label { display:block; font-weight:bold; font-size: 13.5px; color:#444; margin-bottom:6px; }
+        .field input, .field select {
+            width: 100%; padding: 10px 12px; border: 2px solid #eee; border-radius: 8px;
+            font-family: inherit; font-size: 15px; outline: none; box-sizing: border-box;
+        }
+        .field input:focus, .field select:focus { border-color: #3f9b7a; }
+
+        .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom: 14px; }
+        .search-input { flex:1; min-width:200px; padding: 10px 14px; border: 2px solid #eee; border-radius: 20px; font-family: inherit; font-size: 15px; outline:none; }
+        .search-input:focus { border-color: #3f9b7a; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: right; padding: 10px 8px; border-bottom: 1px solid #eee; font-size: 14.5px; }
+        th { color: #777; font-size: 13px; }
+        tr:hover td { background: #f8fbfa; }
+
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: 12.5px; font-weight: bold; display:inline-block; }
+        .badge-active { background:#d4edda; color:#155724; }
+        .badge-expired { background:#f8d7da; color:#721c24; }
+        .badge-disabled { background:#eee; color:#777; }
+
+        .row-actions { display:flex; gap:6px; }
+        .row-actions button { padding: 6px 10px; font-size: 13px; border-radius: 6px; }
+
+        .empty-msg { text-align:center; color:#999; padding: 30px; }
+        .status-msg { text-align:center; color:#777; padding: 20px; }
+    </style>
+</head>
+<body>
+
+<div id="login-view">
+    <div class="login-card">
+        <h2 style="color:#3f9b7a; margin-top:0;">دخول المعلم</h2>
+        <p style="color:#777; font-size:13.5px; margin-top:-8px;">صفحة إدارة أكواد الطلاب</p>
+        <input type="text" id="admin-email" placeholder="البريد الإلكتروني">
+        <input type="password" id="admin-password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter'){adminLogin();}">
+        <button class="btn" style="width:100%; margin-top:10px;" onclick="adminLogin()">دخول</button>
+        <div class="error-msg" id="login-error"></div>
+    </div>
+</div>
+
+<div id="panel-view">
+    <div class="topbar">
+        <div class="main-header" style="border-bottom:none; margin:0; padding:0; max-width:none;">👨‍🏫 إدارة أكواد الطلاب</div>
+        <button class="btn btn-secondary" onclick="adminLogout()">تسجيل خروج</button>
+    </div>
+
+    <div class="wrap">
+        <div class="card">
+            <h2>➕ إضافة طالب جديد</h2>
+            <div class="form-row">
+                <div class="field">
+                    <label>كود الطالب (رقم سري)</label>
+                    <input type="text" id="new-code" placeholder="مثال: 1234">
+                </div>
+                <div class="field">
+                    <label>اسم الطالب (اختياري)</label>
+                    <input type="text" id="new-name" placeholder="مثال: أحمد">
+                </div>
+                <div class="field">
+                    <label>مدة الاشتراك</label>
+                    <select id="new-duration">
+                        <option value="1">شهر واحد</option>
+                        <option value="2">شهرين</option>
+                        <option value="3">٣ أشهر</option>
+                        <option value="4" selected>٤ أشهر</option>
+                        <option value="6">٦ أشهر</option>
+                        <option value="12">سنة كاملة</option>
+                        <option value="custom">تاريخ مخصص...</option>
+                    </select>
+                </div>
+                <div class="field" id="custom-date-field" style="display:none;">
+                    <label>تاريخ الانتهاء</label>
+                    <input type="date" id="new-custom-date">
+                </div>
+                <div class="field" style="flex: 0 0 auto;">
+                    <button class="btn" onclick="addStudent()">حفظ الطالب</button>
+                </div>
+            </div>
+            <div class="error-msg" id="add-error"></div>
+        </div>
+
+        <div class="card">
+            <h2>📋 قائمة الطلاب</h2>
+            <div class="toolbar">
+                <input type="text" class="search-input" id="search-input" placeholder="ابحث بالكود أو الاسم..." oninput="renderTable()">
+                <button class="btn btn-secondary" onclick="loadStudents()">🔄 تحديث</button>
+            </div>
+            <div id="status-msg" class="status-msg">جارٍ التحميل...</div>
+            <div style="overflow-x:auto;">
+                <table id="students-table" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>الكود</th>
+                            <th>الاسم</th>
+                            <th>تاريخ الانتهاء</th>
+                            <th>الحالة</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-tbody"></tbody>
+                </table>
+            </div>
+            <div id="empty-msg" class="empty-msg" style="display:none;">لا يوجد طلاب مسجلون بعد.</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // ==========================================================
+    // إعداد Firebase — مشروع grade7-b8229 (نفس مشروع index.html)
+    // ==========================================================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyC43IY_z4w0lN0VtWtpc1WhT25eUNNmHkk",
+        authDomain: "grade7-b8229.firebaseapp.com",
+        projectId: "grade7-b8229",
+        storageBucket: "grade7-b8229.firebasestorage.app",
+        messagingSenderId: "212787031156",
+        appId: "1:212787031156:web:22fa361becdcf472a67521"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const db = getFirestore(firebaseApp);
+    const auth = getAuth(firebaseApp);
+
+    let students = [];
+    let loadedOnce = false;
+
+    // ---------- دخول / خروج المعلم ----------
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('login-view').style.display = 'none';
+            document.getElementById('panel-view').style.display = 'block';
+            if (!loadedOnce) loadStudents();
+        } else {
+            document.getElementById('login-view').style.display = 'flex';
+            document.getElementById('panel-view').style.display = 'none';
+        }
+    });
+
+    async function adminLogin() {
+        const email = document.getElementById('admin-email').value.trim();
+        const password = document.getElementById('admin-password').value;
+        const errorEl = document.getElementById('login-error');
+        errorEl.innerText = '';
+
+        if (!email || !password) {
+            errorEl.innerText = 'الرجاء إدخال البريد الإلكتروني وكلمة المرور.';
+            return;
+        }
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+            console.error(err);
+            errorEl.innerText = 'بيانات الدخول غير صحيحة: ' + (err.code || err.message || err);
+        }
+    }
+
+    function adminLogout() {
+        signOut(auth);
+    }
+
+    // ---------- إظهار/إخفاء حقل التاريخ المخصص ----------
+    document.getElementById('new-duration').addEventListener('change', (e) => {
+        document.getElementById('custom-date-field').style.display = (e.target.value === 'custom') ? 'block' : 'none';
+    });
+
+    // ---------- إضافة طالب جديد ----------
+    async function addStudent() {
+        const codeEl = document.getElementById('new-code');
+        const nameEl = document.getElementById('new-name');
+        const durationEl = document.getElementById('new-duration');
+        const customDateEl = document.getElementById('new-custom-date');
+        const errorEl = document.getElementById('add-error');
+        errorEl.innerText = '';
+
+        const code = codeEl.value.trim();
+        const name = nameEl.value.trim();
+
+        if (!code) {
+            errorEl.innerText = 'الرجاء إدخال كود الطالب.';
+            return;
+        }
+
+        let expiryDate;
+        if (durationEl.value === 'custom') {
+            if (!customDateEl.value) {
+                errorEl.innerText = 'الرجاء اختيار تاريخ الانتهاء.';
+                return;
+            }
+            expiryDate = customDateEl.value;
+        } else {
+            const months = parseInt(durationEl.value);
+            const d = new Date();
+            d.setMonth(d.getMonth() + months);
+            expiryDate = d.toISOString().split('T')[0];
+        }
+
+        try {
+            const existing = await getDoc(doc(db, 'students', code));
+            if (existing.exists()) {
+                errorEl.innerText = 'هذا الكود مستخدم من قبل، اختر كوداً آخر.';
+                return;
+            }
+
+            await setDoc(doc(db, 'students', code), {
+                name: name || '',
+                active: true,
+                expiryDate: expiryDate,
+                createdAt: Date.now()
+            });
+
+            codeEl.value = '';
+            nameEl.value = '';
+            customDateEl.value = '';
+            durationEl.value = '4';
+            document.getElementById('custom-date-field').style.display = 'none';
+
+            await loadStudents();
+        } catch (err) {
+            console.error(err);
+            errorEl.innerText = 'تعذّر حفظ الطالب: ' + (err.message || err);
+        }
+    }
+
+    // ---------- تحميل قائمة الطلاب ----------
+    async function loadStudents() {
+        const statusEl = document.getElementById('status-msg');
+        statusEl.style.display = 'block';
+        statusEl.innerText = 'جارٍ التحميل...';
+        document.getElementById('students-table').style.display = 'none';
+        document.getElementById('empty-msg').style.display = 'none';
+
+        try {
+            const snap = await getDocs(collection(db, 'students'));
+            students = snap.docs.map(d => ({ code: d.id, ...d.data() }));
+            students.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            loadedOnce = true;
+        } catch (err) {
+            console.error(err);
+            statusEl.innerText = 'تعذّر تحميل القائمة: ' + (err.message || err);
+            return;
+        }
+
+        statusEl.style.display = 'none';
+        renderTable();
+    }
+
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s || '';
+        return div.innerHTML;
+    }
+
+    function studentStatus(student) {
+        if (student.active === false) return { label: 'موقوف', cls: 'badge-disabled' };
+        if (student.expiryDate) {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const expiry = new Date(student.expiryDate);
+            if (expiry < today) return { label: 'منتهي', cls: 'badge-expired' };
+        }
+        return { label: 'نشط', cls: 'badge-active' };
+    }
+
+    function renderTable() {
+        const q = (document.getElementById('search-input').value || '').trim();
+        const items = q
+            ? students.filter(s => s.code.includes(q) || (s.name || '').includes(q))
+            : students;
+
+        const table = document.getElementById('students-table');
+        const tbody = document.getElementById('students-tbody');
+        const empty = document.getElementById('empty-msg');
+
+        if (students.length === 0) {
+            table.style.display = 'none';
+            empty.style.display = 'block';
+            empty.innerText = 'لا يوجد طلاب مسجلون بعد.';
+            return;
+        }
+        if (items.length === 0) {
+            table.style.display = 'none';
+            empty.style.display = 'block';
+            empty.innerText = 'لا توجد نتائج مطابقة لبحثك.';
+            return;
+        }
+
+        empty.style.display = 'none';
+        table.style.display = 'table';
+
+        tbody.innerHTML = items.map(s => {
+            const status = studentStatus(s);
+            return `
+                <tr>
+                    <td><strong>${escapeHtml(s.code)}</strong></td>
+                    <td>${escapeHtml(s.name) || '—'}</td>
+                    <td>${s.expiryDate || '—'}</td>
+                    <td><span class="badge ${status.cls}">${status.label}</span></td>
+                    <td>
+                        <div class="row-actions">
+                            <button class="btn" onclick="extendStudent('${s.code}')">تمديد ٤ أشهر</button>
+                            ${s.active === false
+                                ? `<button class="btn" onclick="toggleActive('${s.code}', true)">تفعيل</button>`
+                                : `<button class="btn btn-secondary" onclick="toggleActive('${s.code}', false)">إيقاف</button>`}
+                            <button class="btn btn-danger" onclick="deleteStudent('${s.code}')">حذف</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // ---------- تمديد الاشتراك ----------
+    async function extendStudent(code) {
+        const student = students.find(s => s.code === code);
+        if (!student) return;
+
+        const base = student.expiryDate ? new Date(student.expiryDate) : new Date();
+        const today = new Date(); today.setHours(0,0,0,0);
+        const startFrom = base < today ? today : base;
+        startFrom.setMonth(startFrom.getMonth() + 4);
+        const newExpiry = startFrom.toISOString().split('T')[0];
+
+        try {
+            await updateDoc(doc(db, 'students', code), { expiryDate: newExpiry, active: true });
+            await loadStudents();
+        } catch (err) {
+            console.error(err);
+            alert('تعذّر التمديد: ' + (err.message || err));
+        }
+    }
+
+    // ---------- تفعيل / إيقاف ----------
+    async function toggleActive(code, value) {
+        try {
+            await updateDoc(doc(db, 'students', code), { active: value });
+            await loadStudents();
+        } catch (err) {
+            console.error(err);
+            alert('تعذّر التحديث: ' + (err.message || err));
+        }
+    }
+
+    // ---------- حذف طالب ----------
+    async function deleteStudent(code) {
+        if (!confirm(`هل تريد حذف الطالب صاحب الكود ${code}؟`)) return;
+        try {
+            await deleteDoc(doc(db, 'students', code));
+            await loadStudents();
+        } catch (err) {
+            console.error(err);
+            alert('تعذّر الحذف: ' + (err.message || err));
+        }
+    }
+
+    // إتاحة الدوال عالمياً لأنها تُستدعى من onclick في HTML
+    window.adminLogin = adminLogin;
+    window.adminLogout = adminLogout;
+    window.addStudent = addStudent;
+    window.loadStudents = loadStudents;
+    window.renderTable = renderTable;
+    window.extendStudent = extendStudent;
+    window.toggleActive = toggleActive;
+    window.deleteStudent = deleteStudent;
+</script>
+</body>
+</html>
